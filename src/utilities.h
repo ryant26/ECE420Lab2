@@ -8,5 +8,6 @@ int parse_number_threads(int, char**);
 
 //Prints the usage of the binary from the terminal
 void print_usage();
+void element_creation_error();
 
 #endif

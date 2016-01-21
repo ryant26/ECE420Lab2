@@ -25,3 +25,8 @@ int parse_number_threads(int argc, char** argv){
 void print_usage(){
 	printf("USAGE: main <integer number of threads> \n");
 }
+
+void element_creation_error(char * element){
+	printf("Error Creating %s\n", element);
+	exit(1);
+}

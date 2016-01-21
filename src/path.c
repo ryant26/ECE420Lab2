@@ -7,18 +7,26 @@
 #include "utilities.h"
 
 pthread_cond_t*** Condition;
-int **A; int **W; int size;
+int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
 
 int main(char **argv, int argc){
-	int number_threads = parse_number_threads(argc, argv);
+	number_threads = parse_number_threads(argc, argv);
 	Lab2_loadinput(&A, &size);
 	create_condition_variables(size);
 	create_mutex_matrix(size);
 	create_weight_matrix(size);
 	pthread_t threads[number_threads];
 
-
+	int i;
+	for (i = 0; i < number_threads; i++){
+		if (pthread_create(&threads[i], NULL, thread, (void *) i)){
+			element_creation_error("Thread");
+		}	
+	}
+	for (i = 0; i < number_threads; i++){
+		pthread_join(threads[i], NULL);
+	}
 
 }
 
@@ -41,8 +49,7 @@ void create_condition_variables(int size){
 		for (j = 0; j < size; j++){
 			for (k = 0; k < size; k++){
 				if (pthread_cond_init(&Condition[i][j][k], NULL)){
-					printf("Error creating condition variable\n");
-					exit(1);
+					element_creation_error("Condition Variable");
 				}
 			}
 		}
@@ -67,8 +74,7 @@ void create_mutex_matrix(int size){
 	for(i = 0; i < size; i++){
 		for (j = 0; j < size; j++){
 			if (pthread_mutex_init(&mutex[i][j], NULL)){
-				printf("Error initalizing mutex\n");
-				exit(1);
+				element_creation_error("Mutex");
 			}
 		}
 	}		 
