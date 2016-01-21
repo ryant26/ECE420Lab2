@@ -11,7 +11,7 @@ all: checkdirs datagen serialtester main
 $(BUILDDIR)/%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: $(BUILDDIR)/path.o $(BUILDDIR)/Lab2IO.o
+main: $(BUILDDIR)/path.o $(BUILDDIR)/Lab2IO.o $(BUILDDIR)/utilities.o 
 	$(CC) -o $(BIN)/main $^ $(CFLAGS)
 
 datagen: $(BUILDDIR)/Lab2IO.o build/datagen.o
