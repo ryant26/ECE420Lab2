@@ -6,21 +6,18 @@
 #include "path.h"
 #include "utilities.h"
 
-pthread_cond_t** Condition;
+pthread_cond_t*** Condition;
 int **A; int **W; int size;
-pthread_mutex_t mutex;
+pthread_mutex_t **mutex;
 
 int main(char **argv, int argc){
 	int number_threads = parse_number_threads(argc, argv);
 	Lab2_loadinput(&A, &size);
 	create_condition_variables(size);
+	create_mutex_matrix(size);
+	create_weight_matrix(size);
 	pthread_t threads[number_threads];
 
-	//Init mutex
-	if (pthread_mutex_init(&mutex, NULL)){
-		printf("Error initalizing mutex\n");
-		exit(1);
-	}
 
 
 }
@@ -33,14 +30,20 @@ void create_condition_variables(int size){
 	Condition = malloc(size * sizeof(pthread_cond_t *));
 	int i;
 	int j;
+	int k;
 	for (i = 0; i < size; i++){
-		Condition[i] = malloc (size * sizeof(pthread_cond_t *));
+		Condition[i] = malloc (size * sizeof(pthread_cond_t *));		
+		for (j = 0; j < size; j++){
+			Condition[i][j] = malloc (size * sizeof(pthread_cond_t *));
+		}
 	}
 	for (i = 0; i < size; i++){
 		for (j = 0; j < size; j++){
-			if (pthread_cond_init(&Condition[i][j], NULL)){
-				printf("Error creating condition variable\n");
-				exit(1);
+			for (k = 0; k < size; k++){
+				if (pthread_cond_init(&Condition[i][j][k], NULL)){
+					printf("Error creating condition variable\n");
+					exit(1);
+				}
 			}
 		}
 	}
@@ -54,15 +57,19 @@ void create_weight_matrix(int size){
 	}
 }
 
-void block_cond(int i, int j){
-	pthread_mutex_lock(&mutex);
-	pthread_cond_wait (&Condition[i][j], &mutex);
-	pthread_mutex_unlock(&mutex);
-
-}
-
-void signal_cond(int i, int j){
-	pthread_mutex_lock(&mutex);
-	pthread_cond_signal(&Condition[i][j]);
-	pthread_mutex_unlock(&mutex);
+void create_mutex_matrix(int size){
+	mutex = malloc(size * sizeof(pthread_mutex_t *));
+	int i;
+	int j;
+	for (i = 0; i < size; i++){
+		mutex[i] = malloc (size * sizeof(pthread_mutex_t *));
+	}
+	for(i = 0; i < size; i++){
+		for (j = 0; j < size; j++){
+			if (pthread_mutex_init(&mutex[i][j], NULL)){
+				printf("Error initalizing mutex\n");
+				exit(1);
+			}
+		}
+	}		 
 }
