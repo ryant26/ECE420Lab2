@@ -10,6 +10,7 @@
 pthread_cond_t** Condition;
 int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
+pthread_cond_t myCond;
 
 int main(int argc, char * argv[]){
 	number_threads = parse_number_threads(argc, argv);
@@ -19,7 +20,8 @@ int main(int argc, char * argv[]){
 	create_weight_matrix(size);
 	pthread_t threads[number_threads];
 	create_data_cube(size);
-
+	pthread_cond_init(&myCond, NULL);
+	
 	double start_time;
 	double end_time;
 	GET_TIME(start_time);
@@ -58,18 +60,18 @@ void* thread(void* thread_id){
 				if (k > 0){
 					while (get_value(i, j, k-1) == 0) {
 						printf("waiting on cond[i=%d][j=%d]\n", i,j);
-						pthread_cond_wait (&Condition[i][j], lock);
+						pthread_cond_wait (&myCond, lock);
 					}
 
 					while (get_value(i, k, k-1) == 0) {
 						printf("waiting on cond[i=%d][k=%d]\n", i,k);
-						pthread_cond_wait (&Condition[i][k], lock);
+						pthread_cond_wait (&myCond, lock);
 					}
 
 
 					while (get_value(k, j, k-1) == 0) {
 						printf("waiting on cond[k=%d][j=%d]\n", i,k);
-						pthread_cond_wait (&Condition[k][j], lock);
+						pthread_cond_wait (&myCond, lock);
 					}
 				}
 
@@ -82,7 +84,7 @@ void* thread(void* thread_id){
 				printf("unlocking mutex[%d][%d]\n",i,j); 
 				pthread_mutex_unlock(lock);
 				printf("signaling cond[%d][%d]\n", i,j);
-				pthread_cond_signal(&Condition[i][j]);
+				pthread_cond_signal(&myCond);
 				
 
 			}
