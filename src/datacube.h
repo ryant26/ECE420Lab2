@@ -8,11 +8,11 @@ void create_data_cube(int);
 
 // This function retreives a value from the data cube
 // Params: int i, int j, int k (indicies)
-int get_value(int, int, int);
+int get_value(int, int);
 
 // This function sets a value from the data cube
-// Params: int i, int j, int k (indicies)
-void set_value(int, int, int, int);
+// Params: int i, int j, int val (indicies)
+void set_value(int, int, int);
 
 // This function destroys the malloc-ed data cube
 void destroy_data_cube();

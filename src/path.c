@@ -73,9 +73,9 @@ void* thread(void* thread_id){
 
 				// Ensure previous iterations have finished for cells we need
 				while ( k > 0
-					&& (get_value(i, j, k-1) == 0
-					|| get_value(i, k, k-1) == 0
-					|| get_value(k, j, k-1) == 0) ) {
+					&& (get_value(i, j) != k-1
+					|| get_value(i, k) != k-1
+					|| get_value(k, j) != k-1) ) {
 					pthread_cond_wait (&Condition, lock);
 				}
 
@@ -85,7 +85,7 @@ void* thread(void* thread_id){
 				}
 
 				// Log a completed cell iteration in data cube
-				set_value(i, j, k, 1);
+				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
 				pthread_mutex_unlock(lock);

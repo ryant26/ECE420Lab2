@@ -24,7 +24,6 @@ void set_value(int i, int j, int k){
 
 void destroy_data_cube(){
 	int i;
-	int j;
 	for (i = 0; i < cubeSize; i++){
 		free(cube[i]);
 	}
