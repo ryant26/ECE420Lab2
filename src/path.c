@@ -56,19 +56,12 @@ void* thread(void* thread_id){
 			for (j = 0; j < size; j++){
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
-				if (k > 0){
-					while (get_value(i, j, k-1) == 0) {
-						pthread_cond_wait (&Condition, lock);
-					}
 
-					while (get_value(i, k, k-1) == 0) {
-						pthread_cond_wait (&Condition, lock);
-					}
-
-
-					while (get_value(k, j, k-1) == 0) {
-						pthread_cond_wait (&Condition, lock);
-					}
+				while ( k > 0
+					&& (get_value(i, j, k-1) == 0
+					|| get_value(i, k, k-1) == 0
+					|| get_value(k, j, k-1) == 0) ) {
+					pthread_cond_wait (&Condition, lock);
 				}
 
 				if (W[i][k] + W[k][j] < W[i][j]){
