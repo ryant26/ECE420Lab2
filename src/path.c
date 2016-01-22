@@ -73,20 +73,23 @@ void* thread(void* thread_id){
 
 				// Ensure previous iterations have finished for cells we need
 				if (k > 0){
+					printf("Locking mutex[i=%d][j=%d]\n", i,j);
 					pthread_mutex_lock(&mutex[i][j]);
-					while ( get_value(i, j) < k-1) {
+					while ( get_value(i, j) != k-1) {
 						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 					}
 					pthread_mutex_unlock(&mutex[i][j]);
 
+					printf("Locking mutex[i=%d][k=%d]\n", i,k);
 					pthread_mutex_lock(&mutex[i][k]);
-					while ( get_value(i, k) < k-1) {
+					while ( get_value(i, k) != k-1) {
 						pthread_cond_wait (&CondMatrix[i][k], &mutex[i][k]);
 					}
 					pthread_mutex_unlock(&mutex[i][k]);
 
+					printf("Locking mutex[k=%d][j=%d]\n", k,j);
 					pthread_mutex_lock(&mutex[k][j]);
-					while ( get_value(k, j) < k-1) {
+					while ( get_value(k, j) != k-1) {
 						pthread_cond_wait (&CondMatrix[k][j], &mutex[k][j]);
 					}
 					pthread_mutex_unlock(&mutex[k][j]);
@@ -95,6 +98,8 @@ void* thread(void* thread_id){
 				}
 
 				//Protect the currently worked on cell
+					printf("Below loops Locking mutex[i=%d][j=%d]\n", i,j);
+
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
 
@@ -104,10 +109,15 @@ void* thread(void* thread_id){
 				}
 
 				// Log a completed cell iteration in data cube
+				printf("Setting datacube[i=%d][j=%d] = %d\n", i,j, k);
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
+				printf("Signaling cond [i=%d][j=%d]\n", i,j);
+
 				pthread_cond_signal(&CondMatrix[i][j]);
+				printf("Unocking mutex[i=%d][j=%d]\n", i,j);
+
 				pthread_mutex_unlock(lock);
 			}
 		}
