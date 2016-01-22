@@ -55,21 +55,35 @@ void* thread(void* thread_id){
 				printf("locking mutex[%d][%d]\n",i,j);
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
+				if (k > 0){
+					while (get_value(i, j, k-1) == 0) {
+						printf("waiting on cond[i=%d][j=%d]\n", i,j);
+						pthread_cond_wait (&Condition[i][j], lock);
+					}
 
-				while (k > 0 && get_value(i, j, k-1) == 0) {
-					printf("waiting on cond[%d][%d]\n", i,j);
-					pthread_cond_wait (&Condition[i][j], lock);
+					while (get_value(i, k, k-1) == 0) {
+						printf("waiting on cond[i=%d][k=%d]\n", i,k);
+						pthread_cond_wait (&Condition[i][k], lock);
+					}
+
+
+					while (get_value(k, j, k-1) == 0) {
+						printf("waiting on cond[k=%d][j=%d]\n", i,k);
+						pthread_cond_wait (&Condition[k][j], lock);
+					}
 				}
+
 				if (W[i][k] + W[k][j] < W[i][j]){
 					W[i][j] = W[i][k] + W[k][j];
 				}
 
 				set_value(i, j, k, 1);
-
-				printf("signaling cond[%d][%d]\n", i,j);
-				pthread_cond_signal(&Condition[i][j]);
+				
 				printf("unlocking mutex[%d][%d]\n",i,j); 
 				pthread_mutex_unlock(lock);
+				printf("signaling cond[%d][%d]\n", i,j);
+				pthread_cond_signal(&Condition[i][j]);
+				
 
 			}
 		}
