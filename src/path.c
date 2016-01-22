@@ -7,7 +7,7 @@
 #include "utilities.h"
 #include "datacube.h"
 
-pthread_cond_t*** Condition;
+pthread_cond_t** Condition;
 int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
 
@@ -19,6 +19,7 @@ int main(int argc, char * argv[]){
 	create_weight_matrix(size);
 	pthread_t threads[number_threads];
 	create_data_cube(size);
+
 	double start_time;
 	double end_time;
 	GET_TIME(start_time);
@@ -54,16 +55,19 @@ void* thread(void* thread_id){
 				printf("locking mutex[%d][%d]\n",i,j);
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
-				if(k > 1) {
-					printf("waiting on cond[%d][%d][%d]\n", i,j,k-1);
-					pthread_cond_wait (&Condition[i][j][k-1], lock);
+
+				while (k > 0 && get_value(i, j, k-1) == 0) {
+					printf("waiting on cond[%d][%d]\n", i,j);
+					pthread_cond_wait (&Condition[i][j], lock);
 				}
 				if (W[i][k] + W[k][j] < W[i][j]){
 					W[i][j] = W[i][k] + W[k][j];
 				}
 
-				printf("signaling cond[%d][%d][%d]\n", i,j,k);
-				pthread_cond_signal(&Condition[i][j][k]);
+				set_value(i, j, k, 1);
+
+				printf("signaling cond[%d][%d]\n", i,j);
+				pthread_cond_signal(&Condition[i][j]);
 				printf("unlocking mutex[%d][%d]\n",i,j); 
 				pthread_mutex_unlock(lock);
 
@@ -77,19 +81,13 @@ void create_condition_variables(int size){
 	Condition = malloc(size * sizeof(pthread_cond_t *));
 	int i;
 	int j;
-	int k;
 	for (i = 0; i < size; i++){
-		Condition[i] = malloc (size * sizeof(pthread_cond_t *));		
-		for (j = 0; j < size; j++){
-			Condition[i][j] = malloc (size * sizeof(pthread_cond_t));
-		}
+		Condition[i] = malloc (size * sizeof(pthread_cond_t));		
 	}
 	for (i = 0; i < size; i++){
 		for (j = 0; j < size; j++){
-			for (k = 0; k < size; k++){
-				if (pthread_cond_init(&Condition[i][j][k], NULL)){
-					element_creation_error("Condition Variable");
-				}
+			if (pthread_cond_init(&Condition[i][j], NULL)){
+				element_creation_error("Condition Variable");
 			}
 		}
 	}
