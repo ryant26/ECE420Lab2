@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -lpthread -lm
+CFLAGS := -lpthread -lm -Wall
 
 VPATH = src:sdk
 BUILDDIR = build
