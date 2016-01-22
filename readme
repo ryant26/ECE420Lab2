@@ -1,8 +1,8 @@
-# ECE 420 Lab 1
+# ECE 420 Lab 2
 ## Authors: Jared Cuglietta (1282916), Ryan Thornhill (1304096)
 
 ## Info
-This is a multithreaded implementation of matrix multiply.
+This is a multithreaded implementation of the Floyd Warshall algorithm.
 
 ## How to build:
 From the main directory run `make all`. This will create executables in the bin directory.
