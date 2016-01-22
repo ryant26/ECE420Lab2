@@ -20,7 +20,7 @@ datagen: $(BUILDDIR)/Lab2IO.o build/datagen.o
 serialtester: build/Lab2IO.o build/serialtester.o 
 	$(CC) -o $(BIN)/serialtester $^
 
-solution: $(BUILDDIR)/lab2sol_bar.c $(BUILDDIR)/Lab2IO.o
+solution: $(BUILDDIR)/Lab2IO.o $(BUILDDIR)/lab2sol_bar.o 
 	$(CC) -o $(BIN)/solution $^ $(CFLAGS)
 
 checkdirs: $(BUILDDIR) $(BIN)

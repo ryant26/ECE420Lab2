@@ -7,20 +7,19 @@
 #include "utilities.h"
 #include "datacube.h"
 
-pthread_cond_t** Condition;
 int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
-pthread_cond_t myCond;
+pthread_cond_t Condition;
 
 int main(int argc, char * argv[]){
 	number_threads = parse_number_threads(argc, argv);
 	Lab2_loadinput(&A, &size);
-	create_condition_variables(size);
 	create_mutex_matrix(size);
 	create_weight_matrix(size);
-	pthread_t threads[number_threads];
 	create_data_cube(size);
-	pthread_cond_init(&myCond, NULL);
+
+	pthread_t threads[number_threads];
+	pthread_cond_init(&Condition, NULL);
 	
 	double start_time;
 	double end_time;
@@ -37,6 +36,7 @@ int main(int argc, char * argv[]){
 	}
 
 	GET_TIME(end_time);
+	printf("The elapsed time is: %f\n", end_time - start_time);
 
 	Lab2_saveoutput(W, size, end_time - start_time);
 
@@ -54,24 +54,20 @@ void* thread(void* thread_id){
 	for (k = 0; k < size; k++){
 		for (i = offset; i < offset + rows; i++){
 			for (j = 0; j < size; j++){
-				printf("locking mutex[%d][%d]\n",i,j);
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
 				if (k > 0){
 					while (get_value(i, j, k-1) == 0) {
-						printf("waiting on cond[i=%d][j=%d]\n", i,j);
-						pthread_cond_wait (&myCond, lock);
+						pthread_cond_wait (&Condition, lock);
 					}
 
 					while (get_value(i, k, k-1) == 0) {
-						printf("waiting on cond[i=%d][k=%d]\n", i,k);
-						pthread_cond_wait (&myCond, lock);
+						pthread_cond_wait (&Condition, lock);
 					}
 
 
 					while (get_value(k, j, k-1) == 0) {
-						printf("waiting on cond[k=%d][j=%d]\n", i,k);
-						pthread_cond_wait (&myCond, lock);
+						pthread_cond_wait (&Condition, lock);
 					}
 				}
 
@@ -81,31 +77,13 @@ void* thread(void* thread_id){
 
 				set_value(i, j, k, 1);
 				
-				printf("unlocking mutex[%d][%d]\n",i,j); 
 				pthread_mutex_unlock(lock);
-				printf("signaling cond[%d][%d]\n", i,j);
-				pthread_cond_signal(&myCond);
+				pthread_cond_signal(&Condition);
 			}
 		}
 	}
 	return 0;
 } 
-
-void create_condition_variables(int size){
-	Condition = malloc(size * sizeof(pthread_cond_t *));
-	int i;
-	int j;
-	for (i = 0; i < size; i++){
-		Condition[i] = malloc (size * sizeof(pthread_cond_t));		
-	}
-	for (i = 0; i < size; i++){
-		for (j = 0; j < size; j++){
-			if (pthread_cond_init(&Condition[i][j], NULL)){
-				element_creation_error("Condition Variable");
-			}
-		}
-	}
-}
 
 void create_weight_matrix(int size){
 	W = malloc(size * sizeof(int *));
