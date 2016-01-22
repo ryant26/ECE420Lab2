@@ -81,14 +81,13 @@ void* thread(void* thread_id){
 
 					pthread_mutex_lock(&mutex[i][k]);
 					while ( get_value(i, k) < k-1) {
-						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+						pthread_cond_wait (&CondMatrix[i][k], &mutex[i][k]);
 					}
 					pthread_mutex_unlock(&mutex[i][k]);
 
 					pthread_mutex_lock(&mutex[k][j]);
-
 					while ( get_value(k, j) < k-1) {
-						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+						pthread_cond_wait (&CondMatrix[k][j], &mutex[k][j]);
 					}
 					pthread_mutex_unlock(&mutex[k][j]);
 
@@ -108,8 +107,8 @@ void* thread(void* thread_id){
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
-				pthread_mutex_unlock(lock);
 				pthread_cond_signal(&CondMatrix[i][j]);
+				pthread_mutex_unlock(lock);
 			}
 		}
 	}
