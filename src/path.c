@@ -85,8 +85,6 @@ void* thread(void* thread_id){
 				pthread_mutex_unlock(lock);
 				printf("signaling cond[%d][%d]\n", i,j);
 				pthread_cond_signal(&myCond);
-				
-
 			}
 		}
 	}

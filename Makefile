@@ -5,7 +5,7 @@ VPATH = src:sdk
 BUILDDIR = build
 BIN = bin
 
-all: checkdirs datagen serialtester main
+all: checkdirs datagen serialtester main solution
 
 
 $(BUILDDIR)/%.o: %.c
@@ -19,6 +19,9 @@ datagen: $(BUILDDIR)/Lab2IO.o build/datagen.o
 
 serialtester: build/Lab2IO.o build/serialtester.o 
 	$(CC) -o $(BIN)/serialtester $^
+
+solution: $(BUILDDIR)/lab2sol_bar.c $(BUILDDIR)/Lab2IO.o
+	$(CC) -o $(BIN)/solution $^ $(CFLAGS)
 
 checkdirs: $(BUILDDIR) $(BIN)
 
