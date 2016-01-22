@@ -5,6 +5,7 @@
 #include "../sdk/timer.h"
 #include "path.h"
 #include "utilities.h"
+#include "datacube.h"
 
 pthread_cond_t*** Condition;
 int **A; int **W; int size; int number_threads;
@@ -17,7 +18,7 @@ int main(int argc, char * argv[]){
 	create_mutex_matrix(size);
 	create_weight_matrix(size);
 	pthread_t threads[number_threads];
-
+	create_data_cube(size);
 	double start_time;
 	double end_time;
 	GET_TIME(start_time);
@@ -47,7 +48,7 @@ void* thread(void* thread_id){
 	int i;
 	int j;
 	int k;
-	for (k = 1; k < size; k++){
+	for (k = 0; k < size; k++){
 		for (i = offset; i < offset + rows; i++){
 			for (j = 0; j < size; j++){
 				printf("locking mutex[%d][%d]\n",i,j);
