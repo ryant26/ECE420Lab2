@@ -1,11 +1,13 @@
 #include <stdlib.h>
 
+//Globals for use
 int ***cube;
 int cubeSize;
 
 void create_data_cube(int size){
 	cubeSize = size;
 	cube = malloc(size * sizeof(int *));
+	
 	int i;
 	int j;
 	for (i = 0; i < size; i++){
