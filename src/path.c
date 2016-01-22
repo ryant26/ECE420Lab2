@@ -73,32 +73,23 @@ void* thread(void* thread_id){
 
 				// Ensure previous iterations have finished for cells we need
 				if (k > 0){
-					printf("Locking mutex[i=%d][j=%d]\n", i,j);
 					pthread_mutex_lock(&mutex[i][j]);
-					printf("get_value(i=%d, j=%d) = %d\n", i, j, get_value(i,j));
 					int value = get_value(i, j);
 					while ( value != k && value != k-1) {
-						printf("waiting on cond [i=%d][j=%d]\n", i,j);
 						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 					}
 					pthread_mutex_unlock(&mutex[i][j]);
 
-					printf("Locking mutex[i=%d][k=%d]\n", i,k);
 					pthread_mutex_lock(&mutex[i][k]);
-					printf("get_value(i=%d, k=%d) = %d\n", i, k, get_value(i,k));
 					value = get_value(i, k);
 					while ( value != k && value != k-1) {
-						printf("waiting on cond [i=%d][k=%d]\n", i,k);
 						pthread_cond_wait (&CondMatrix[i][k], &mutex[i][k]);
 					}
 					pthread_mutex_unlock(&mutex[i][k]);
 
-					printf("Locking mutex[k=%d][j=%d]\n", k,j);
 					pthread_mutex_lock(&mutex[k][j]);
-					printf("get_value(k=%d, j=%d) = %d\n", k, j, get_value(k,j));
 					value = get_value(i, k);
 					while ( value != k && value != k-1) {
-						printf("waiting on cond [k=%d][j=%d]\n", k,j);
 						pthread_cond_wait (&CondMatrix[k][j], &mutex[k][j]);
 					}
 					pthread_mutex_unlock(&mutex[k][j]);
@@ -107,7 +98,6 @@ void* thread(void* thread_id){
 				}
 
 				//Protect the currently worked on cell
-					printf("Below loops Locking mutex[i=%d][j=%d]\n", i,j);
 
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
@@ -118,14 +108,11 @@ void* thread(void* thread_id){
 				}
 
 				// Log a completed cell iteration in data cube
-				printf("Setting datacube[i=%d][j=%d] = %d\n", i,j, k);
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
-				printf("Signaling cond [i=%d][j=%d]\n", i,j);
 
 				pthread_cond_signal(&CondMatrix[i][j]);
-				printf("Unocking mutex[i=%d][j=%d]\n", i,j);
 
 				pthread_mutex_unlock(lock);
 			}
