@@ -11,6 +11,7 @@
 int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
 pthread_cond_t Condition;
+pthread_cond_t **CondMatrix;
 
 int main(int argc, char * argv[]){
 
@@ -20,6 +21,7 @@ int main(int argc, char * argv[]){
 	create_mutex_matrix(size);
 	create_weight_matrix(size);
 	create_data_cube(size);
+	create_condvar_matrix(size);
 
 	// Pthreads / Synchronication initialization
 	pthread_t threads[number_threads];
@@ -67,17 +69,35 @@ void* thread(void* thread_id){
 		for (i = offset; i < offset + rows; i++){
 			for (j = 0; j < size; j++){
 
+				
+
+				// Ensure previous iterations have finished for cells we need
+				if (k > 0){
+					pthread_mutex_lock(&mutex[i][j]);
+					while ( get_value(i, j) < k-1) {
+						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+					}
+					pthread_mutex_unlock(&mutex[i][j]);
+
+					pthread_mutex_lock(&mutex[i][k]);
+					while ( get_value(i, k) < k-1) {
+						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+					}
+					pthread_mutex_unlock(&mutex[i][k]);
+
+					pthread_mutex_lock(&mutex[k][j]);
+
+					while ( get_value(k, j) < k-1) {
+						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+					}
+					pthread_mutex_unlock(&mutex[k][j]);
+
+
+				}
+
 				//Protect the currently worked on cell
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
-
-				// Ensure previous iterations have finished for cells we need
-				while ( k > 0
-					&& (get_value(i, j) != k-1
-					|| get_value(i, k) != k-1
-					|| get_value(k, j) != k-1) ) {
-					pthread_cond_wait (&Condition, lock);
-				}
 
 				// Replace current cost with shortes cost
 				if (W[i][k] + W[k][j] < W[i][j]){
@@ -89,11 +109,27 @@ void* thread(void* thread_id){
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
 				pthread_mutex_unlock(lock);
-				pthread_cond_signal(&Condition);
+				pthread_cond_signal(&CondMatrix[i][j]);
 			}
 		}
 	}
 	return 0;
+}
+
+void create_condvar_matrix(int size){
+	CondMatrix = malloc(size * sizeof(pthread_cond_t *));
+	int i;
+	int j;
+	for(i =0; i < size; i++){
+		CondMatrix[i] = malloc(size * sizeof(pthread_cond_t));
+	}
+	for(i =0; i < size; i++){
+		for(j =0; j < size; j++){
+			pthread_cond_init(&CondMatrix[i][j], NULL);
+		}
+	}
+
+
 } 
 
 void create_weight_matrix(int size){

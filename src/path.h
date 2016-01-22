@@ -12,4 +12,6 @@ void create_weight_matrix(int);
 // Creates a square matrix of mutexes for synchronization
 // Params: int size
 void create_mutex_matrix(int);
+
+void create_condvar_matrix(int);
 #endif
