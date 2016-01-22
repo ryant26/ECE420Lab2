@@ -20,5 +20,5 @@ void create_condvar_matrix(int);
 // Blocks the exection of the thread if the previous iteration on this element
 // has not been completed
 // Params: int i, int j, int k
-int previous_iteration_complete(int, int, int);
+void previous_iteration_complete(int, int, int);
 #endif

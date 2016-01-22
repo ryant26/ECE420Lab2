@@ -117,12 +117,17 @@ void create_condvar_matrix(int size){
 } 
 
 void create_weight_matrix(int size){
+	// Create outter array
 	W = malloc(size * sizeof(int *));
+	
+	// Create inner arrays
 	int i;
 	int j;
 	for (i = 0; i < size; i++){
 		W[i] = malloc (size * sizeof(int));
 	}
+
+	// Copy original cost matrix to weight matrix
 	for (i = 0; i < size; i++){
 		for (j = 0; j < size; j++){
 			W[i][j] = A[i][j];
@@ -131,12 +136,17 @@ void create_weight_matrix(int size){
 }
 
 void create_mutex_matrix(int size){
+	// Create outter array
 	mutex = malloc(size * sizeof(pthread_mutex_t *));
+	
+	// Create inner arrays
 	int i;
 	int j;
 	for (i = 0; i < size; i++){
 		mutex[i] = malloc (size * sizeof(pthread_mutex_t));
 	}
+
+	// Initialize mutexes
 	for(i = 0; i < size; i++){
 		for (j = 0; j < size; j++){
 			if (pthread_mutex_init(&mutex[i][j], NULL)){
@@ -146,13 +156,16 @@ void create_mutex_matrix(int size){
 	}		 
 }
 
-int previous_iteration_complete(int i, int j, int k){
+void previous_iteration_complete(int i, int j, int k){
+	// Lock the condition variables protecting mutex
 	pthread_mutex_lock(&mutex[i][j]);
 
+	// Check if the previous iteration has been completed
 	int value = get_value(i, j);
 	while ( value != k && value != k-1) {
 		pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 	}
 
+	// Unlock the protecting mutex
 	pthread_mutex_unlock(&mutex[i][j]);
 }
