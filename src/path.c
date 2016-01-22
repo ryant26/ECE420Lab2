@@ -75,21 +75,30 @@ void* thread(void* thread_id){
 				if (k > 0){
 					printf("Locking mutex[i=%d][j=%d]\n", i,j);
 					pthread_mutex_lock(&mutex[i][j]);
-					while ( get_value(i, j) != k-1) {
+					printf("get_value(i=%d, j=%d) = %d\n", i, j, get_value(i,j));
+					int value = get_value(i, j);
+					while ( value != k && value != k-1) {
+						printf("waiting on cond [i=%d][j=%d]\n", i,j);
 						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 					}
 					pthread_mutex_unlock(&mutex[i][j]);
 
 					printf("Locking mutex[i=%d][k=%d]\n", i,k);
 					pthread_mutex_lock(&mutex[i][k]);
-					while ( get_value(i, k) != k-1) {
+					printf("get_value(i=%d, k=%d) = %d\n", i, k, get_value(i,k));
+					value = get_value(i, k);
+					while ( value != k && value != k-1) {
+						printf("waiting on cond [i=%d][k=%d]\n", i,k);
 						pthread_cond_wait (&CondMatrix[i][k], &mutex[i][k]);
 					}
 					pthread_mutex_unlock(&mutex[i][k]);
 
 					printf("Locking mutex[k=%d][j=%d]\n", k,j);
 					pthread_mutex_lock(&mutex[k][j]);
-					while ( get_value(k, j) != k-1) {
+					printf("get_value(k=%d, j=%d) = %d\n", k, j, get_value(k,j));
+					value = get_value(i, k);
+					while ( value != k && value != k-1) {
+						printf("waiting on cond [k=%d][j=%d]\n", k,j);
 						pthread_cond_wait (&CondMatrix[k][j], &mutex[k][j]);
 					}
 					pthread_mutex_unlock(&mutex[k][j]);
