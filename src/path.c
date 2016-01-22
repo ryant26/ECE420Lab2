@@ -69,36 +69,14 @@ void* thread(void* thread_id){
 		for (i = offset; i < offset + rows; i++){
 			for (j = 0; j < size; j++){
 
-				
-
 				// Ensure previous iterations have finished for cells we need
 				if (k > 0){
-					pthread_mutex_lock(&mutex[i][j]);
-					int value = get_value(i, j);
-					while ( value != k && value != k-1) {
-						pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
-					}
-					pthread_mutex_unlock(&mutex[i][j]);
-
-					pthread_mutex_lock(&mutex[i][k]);
-					value = get_value(i, k);
-					while ( value != k && value != k-1) {
-						pthread_cond_wait (&CondMatrix[i][k], &mutex[i][k]);
-					}
-					pthread_mutex_unlock(&mutex[i][k]);
-
-					pthread_mutex_lock(&mutex[k][j]);
-					value = get_value(i, k);
-					while ( value != k && value != k-1) {
-						pthread_cond_wait (&CondMatrix[k][j], &mutex[k][j]);
-					}
-					pthread_mutex_unlock(&mutex[k][j]);
-
-
+					previous_iteration_complete(i, j, k);
+					previous_iteration_complete(i, k, k);
+					previous_iteration_complete(k, j, k);
 				}
 
 				//Protect the currently worked on cell
-
 				pthread_mutex_t *lock = &mutex[i][j];
 				pthread_mutex_lock(lock);
 
@@ -111,9 +89,7 @@ void* thread(void* thread_id){
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
-
 				pthread_cond_signal(&CondMatrix[i][j]);
-
 				pthread_mutex_unlock(lock);
 			}
 		}
@@ -122,19 +98,22 @@ void* thread(void* thread_id){
 }
 
 void create_condvar_matrix(int size){
+	// Create outer array
 	CondMatrix = malloc(size * sizeof(pthread_cond_t *));
+	
+	//Create inner array
 	int i;
 	int j;
 	for(i =0; i < size; i++){
 		CondMatrix[i] = malloc(size * sizeof(pthread_cond_t));
 	}
+
+	// Initialize condition variables
 	for(i =0; i < size; i++){
 		for(j =0; j < size; j++){
 			pthread_cond_init(&CondMatrix[i][j], NULL);
 		}
 	}
-
-
 } 
 
 void create_weight_matrix(int size){
@@ -165,4 +144,15 @@ void create_mutex_matrix(int size){
 			}
 		}
 	}		 
+}
+
+int previous_iteration_complete(int i, int j, int k){
+	pthread_mutex_lock(&mutex[i][j]);
+
+	int value = get_value(i, j);
+	while ( value != k && value != k-1) {
+		pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
+	}
+
+	pthread_mutex_unlock(&mutex[i][j]);
 }
