@@ -12,6 +12,7 @@ int **A; int **W; int size; int number_threads;
 pthread_mutex_t **mutex;
 pthread_cond_t Condition;
 pthread_cond_t **CondMatrix;
+int DEBUG = 0;
 
 int main(int argc, char * argv[]){
 
@@ -48,6 +49,8 @@ int main(int argc, char * argv[]){
 	// Retrieve elapsed time
 	GET_TIME(end_time);
 
+	printf("Ellapsed Time: %f\n", end_time - start_time);
+
 	Lab2_saveoutput(W, size, end_time - start_time);
 
 	return 0;
@@ -71,11 +74,11 @@ void* thread(void* thread_id){
 
 				// Ensure previous iterations have finished for cells we need
 				if (k > 0){
-					printf("%d: checking: i j k \n", id);
+					if (DEBUG) printf("%d: checking: i j k \n", id);
 					previous_iteration_complete(i, j, k, id);
-					printf("%d: checking: i k k \n", id);
+					if (DEBUG) printf("%d: checking: i k k \n", id);
 					previous_iteration_complete(i, k, k, id);
-					printf("%d: checking: k j k \n", id);
+					if (DEBUG) printf("%d: checking: k j k \n", id);
 					previous_iteration_complete(k, j, k, id);
 				}
 
@@ -89,7 +92,7 @@ void* thread(void* thread_id){
 				}
 
 				// Log a completed cell iteration in data cube
-				printf("%d: set [i=%d][j=%d] = %d\n", id, i, j, k);
+				if (DEBUG) printf("%d: set [i=%d][j=%d] = %d\n", id, i, j, k);
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
@@ -162,17 +165,17 @@ void create_mutex_matrix(int size){
 
 void previous_iteration_complete(int i, int j, int k, int tid){
 	// Lock the condition variables protecting mutex
-	printf("%d: locking mutex[%d][%d]\n", tid, i, j);
+	if (DEBUG) printf("%d: locking mutex[%d][%d]\n", tid, i, j);
 	pthread_mutex_lock(&mutex[i][j]);
 
 	// Check if the previous iteration has been completed
 	while ( get_value(i, j) < k-1) {
-		printf("%d: got value[%d][%d] = %d \n", tid, i, j, get_value(i,j));
-		printf("%d: waiting on cond[%d][%d]\n", tid, i, j);
+		if (DEBUG) printf("%d: got value[%d][%d] = %d \n", tid, i, j, get_value(i,j));
+		if (DEBUG) printf("%d: waiting on cond[%d][%d]\n", tid, i, j);
 		pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 	}
 
 	// Unlock the protecting mutex
-	printf("%d: unlocking mutex[%d][%d]\n", tid, i, j);
+	if (DEBUG) printf("%d: unlocking mutex[%d][%d]\n", tid, i, j);
 	pthread_mutex_unlock(&mutex[i][j]);
 }
