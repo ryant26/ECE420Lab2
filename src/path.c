@@ -71,9 +71,12 @@ void* thread(void* thread_id){
 
 				// Ensure previous iterations have finished for cells we need
 				if (k > 0){
-					previous_iteration_complete(i, j, k);
-					previous_iteration_complete(i, k, k);
-					previous_iteration_complete(k, j, k);
+					printf("%d: checking: i j k \n", id);
+					previous_iteration_complete(i, j, k, id);
+					printf("%d: checking: i k k \n", id);
+					previous_iteration_complete(i, k, k, id);
+					printf("%d: checking: k j k \n", id);
+					previous_iteration_complete(k, j, k, id);
 				}
 
 				//Protect the currently worked on cell
@@ -86,11 +89,12 @@ void* thread(void* thread_id){
 				}
 
 				// Log a completed cell iteration in data cube
+				printf("%d: set [i=%d][j=%d] = %d\n", id, i, j, k);
 				set_value(i, j, k);
 				
 				// Unlock mutex, signal waiting threads to check if their cell is completed
-				pthread_cond_signal(&CondMatrix[i][j]);
 				pthread_mutex_unlock(lock);
+				pthread_cond_broadcast(&CondMatrix[i][j]);
 			}
 		}
 	}
@@ -156,16 +160,19 @@ void create_mutex_matrix(int size){
 	}		 
 }
 
-void previous_iteration_complete(int i, int j, int k){
+void previous_iteration_complete(int i, int j, int k, int tid){
 	// Lock the condition variables protecting mutex
+	printf("%d: locking mutex[%d][%d]\n", tid, i, j);
 	pthread_mutex_lock(&mutex[i][j]);
 
 	// Check if the previous iteration has been completed
-	int value = get_value(i, j);
-	while ( value != k && value != k-1) {
+	while ( get_value(i, j) < k-1) {
+		printf("%d: got value[%d][%d] = %d \n", tid, i, j, get_value(i,j));
+		printf("%d: waiting on cond[%d][%d]\n", tid, i, j);
 		pthread_cond_wait (&CondMatrix[i][j], &mutex[i][j]);
 	}
 
 	// Unlock the protecting mutex
+	printf("%d: unlocking mutex[%d][%d]\n", tid, i, j);
 	pthread_mutex_unlock(&mutex[i][j]);
 }
