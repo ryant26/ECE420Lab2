@@ -17,8 +17,8 @@ int DEBUG = 0;
 int main(int argc, char * argv[]){
 
 	//Initialization functions
-	number_threads = parse_number_threads(argc, argv);
 	Lab2_loadinput(&A, &size);
+	number_threads = parse_number_threads(argc, argv, size);
 	create_mutex_matrix(size);
 	create_weight_matrix(size);
 	create_data_cube(size);
