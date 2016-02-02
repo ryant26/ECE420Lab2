@@ -5,11 +5,13 @@
 This is a multithreaded implementation of the Floyd Warshall algorithm.
 
 ## How to build:
-From the main directory run `make all`. This will create executables in the bin directory.
+From the main directory run 'make' to generate the main executable in the root directory.
+
+From the main directory run `make all`. This will create all executables in the bin directory.
 You can also run make clean all. To perform a rebuild.
 
 ## How to run:
-From the main directory run `bin/main <number of threads>`
+From the main directory run `./main <number of threads>` or 'bin/main <number of threads>' depending on which make target was run
 
 ## Other notes:
 See readme in sdk directory on how to generate matrix input file, and test results.

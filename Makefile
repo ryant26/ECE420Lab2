@@ -5,11 +5,15 @@ VPATH = src:sdk
 BUILDDIR = build
 BIN = bin
 
-all: checkdirs datagen serialtester main solution
+default: checkdirs submission
 
+all: checkdirs datagen serialtester main solution
 
 $(BUILDDIR)/%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
+
+submission: $(BUILDDIR)/path.o $(BUILDDIR)/Lab2IO.o $(BUILDDIR)/utilities.o $(BUILDDIR)/datacube.o 
+	$(CC) -o main $^ $(CFLAGS)
 
 main: $(BUILDDIR)/path.o $(BUILDDIR)/Lab2IO.o $(BUILDDIR)/utilities.o $(BUILDDIR)/datacube.o 
 	$(CC) -o $(BIN)/main $^ $(CFLAGS)
@@ -35,3 +39,4 @@ clean:
 	rm -rf $(BUILDDIR) 
 	rm -rf $(BIN)
 	rm -f data_*
+	rm -f main
